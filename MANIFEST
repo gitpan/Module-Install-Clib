@@ -27,6 +27,8 @@ t/010_simple/foo.h
 t/010_simple/inst/.gitignore
 t/010_simple/Makefile.PL
 t/010_simple/test.t
+t/020_user/Makefile.PL
+t/020_user/test.t
 t/Utils.pm
 xt/01_podspell.t
 xt/02_perlcritic.t

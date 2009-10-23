@@ -1,7 +1,7 @@
 package Module::Install::Clib;
 use strict;
 use warnings;
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 use 5.008_001;
 use base qw(Module::Install::Base);
 use Config;
@@ -11,9 +11,21 @@ sub clib_header {
     my ($self, $filename) = @_;
     (my $distname = $self->name) =~ s/Clib-//;
 
+    # for blib
     my $pm = $self->makemaker_args->{PM} || {};
-    $pm->{$filename} = File::Spec->catdir('$(INSTALLARCHLIB)', 'auto', 'Clib', 'include', $distname, $filename);
+    $pm->{$filename} = File::Spec->catfile('$(INST_ARCHLIB)', 'auto', 'Clib', 'include', $distname, $filename);
     $self->makemaker_args(PM => $pm);
+
+    # for installing
+    my $dstdir = File::Spec->catdir('$(INSTALLARCHLIB)', 'auto', 'Clib', 'include', $distname);
+    my $dst = File::Spec->catfile($dstdir, $filename);
+$self->postamble(<<"END_MAKEFILE");
+install ::
+\t\t\$(NOECHO) \$(ECHO) Installing $dst
+\t\t\$(NOECHO) \$(MKPATH) "$dstdir"
+\t\t\$(NOECHO) \$(CP) "$filename" "$dstdir"
+
+END_MAKEFILE
 }
 
 sub clib_library {
@@ -21,17 +33,32 @@ sub clib_library {
     (my $distname = $self->name) =~ s/Clib-//;
 
     my $pm = $self->makemaker_args->{PM} || {};
-    $pm->{$filename} = File::Spec->catdir('$(INSTALLARCHLIB)', 'auto', 'Clib', 'lib', $filename);
+    $pm->{$filename} = File::Spec->catfile('$(INST_ARCHLIB)', 'auto', 'Clib', 'lib', $filename);
     $self->makemaker_args(PM => $pm);
+
+    my $dstdir = File::Spec->catdir('$(INSTALLARCHLIB)', 'auto', 'Clib', 'lib');
+    my $dst = File::Spec->catfile($dstdir, $filename);
+$self->postamble(<<"END_MAKEFILE");
+install ::
+\t\t\$(NOECHO) \$(ECHO) Installing $dst
+\t\t\$(NOECHO) \$(MKPATH) "$dstdir"
+\t\t\$(NOECHO) \$(CP) "$filename" "$dstdir"
+
+END_MAKEFILE
 }
 
 sub clib_setup {
     my ($self) = @_;
-    my @dirs = map { File::Spec->catfile($_, qw/auto Clib/) } grep /$Config{archname}/, @INC;
+    my %uniq;
+    my @dirs = grep { $uniq{$_}++ == 0 } map { File::Spec->catfile($_, qw/auto Clib/) } grep /$Config{archname}/, @INC;
     my @libs = grep { -d $_ } map { File::Spec->catfile($_, 'lib') }     @dirs;
     my @incs = grep { -d $_ } map { File::Spec->catfile($_, 'include') } @dirs;
-    $self->cc_append_to_inc(@incs);
-    $self->cc_append_to_libs(@libs);
+
+    my $incs = $self->makemaker_args->{INC} || '';
+    $self->makemaker_args->{INC} = "-I\$(INST_ARCHLIB)/auto/Clib/include/ " . join(" ", map { "-I$_" } @incs) . ' ' . $incs;
+
+    my $libs = $self->makemaker_args->{LIBS} || '';
+    $self->makemaker_args->{LIBS} = join(" ", map { "-L$_" } @libs) . ' ' . $libs;
 }
 
 1;
