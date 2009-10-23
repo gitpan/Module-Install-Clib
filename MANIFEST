@@ -23,6 +23,11 @@ MANIFEST			This list of files
 META.yml
 README
 t/00_compile.t
+t/010_simple/foo.h
+t/010_simple/inst/.gitignore
+t/010_simple/Makefile.PL
+t/010_simple/test.t
+t/Utils.pm
 xt/01_podspell.t
 xt/02_perlcritic.t
 xt/03_pod.t

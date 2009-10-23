@@ -1,43 +1,28 @@
 package Module::Install::Clib;
 use strict;
 use warnings;
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 use 5.008_001;
 use base qw(Module::Install::Base);
 use Config;
 use File::Spec;
 
-my $mkpath = q{$(NOECHO) $(ABSPERL) -MExtUtils::Command -e mkpath -- };
-my $cp     = q{$(NOECHO) $(ABSPERL) -MExtUtils::Command -e cp     -- };
-
 sub clib_header {
     my ($self, $filename) = @_;
     (my $distname = $self->name) =~ s/Clib-//;
 
-    my $dstdir = File::Spec->catdir('$(INSTALLARCHLIB)', 'auto', 'Clib', 'include', $distname);
-    my $dst = File::Spec->catfile($dstdir, $filename);
-    $self->postamble(<<"END_MAKEFILE");
-config ::
-\t\t\$(NOECHO) \$(ECHO) Installing $dst
-\t\t$mkpath $dstdir
-\t\t$cp "$filename" "$dst"
-
-END_MAKEFILE
+    my $pm = $self->makemaker_args->{PM} || {};
+    $pm->{$filename} = File::Spec->catdir('$(INSTALLARCHLIB)', 'auto', 'Clib', 'include', $distname, $filename);
+    $self->makemaker_args(PM => $pm);
 }
 
 sub clib_library {
     my ($self, $filename) = @_;
     (my $distname = $self->name) =~ s/Clib-//;
 
-    my $dstdir = File::Spec->catdir('$(INSTALLARCHLIB)', 'auto', 'Clib', 'lib');
-    my $dst = File::Spec->catfile($dstdir, $filename);
-    $self->postamble(<<"END_MAKEFILE");
-config ::
-\t\t\$(NOECHO) \$(ECHO) Installing $dst
-\t\t$mkpath $dstdir
-\t\t$cp "$filename" "$dst"
-
-END_MAKEFILE
+    my $pm = $self->makemaker_args->{PM} || {};
+    $pm->{$filename} = File::Spec->catdir('$(INSTALLARCHLIB)', 'auto', 'Clib', 'lib', $filename);
+    $self->makemaker_args(PM => $pm);
 }
 
 sub clib_setup {
