@@ -1,4 +1,3 @@
-.gitignore
 Changes
 inc/Module/Install.pm
 inc/Module/Install/AuthorTests.pm
@@ -24,7 +23,7 @@ META.yml
 README
 t/00_compile.t
 t/010_simple/foo.h
-t/010_simple/inst/.gitignore
+t/010_simple/lib/Foo.pm
 t/010_simple/Makefile.PL
 t/010_simple/test.t
 t/020_user/Makefile.PL
